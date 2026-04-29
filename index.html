@@ -50,7 +50,7 @@ import {
   Star, Shield, Clock, Instagram, MessageCircle, ImageIcon, 
   ArrowRight, Waves, Sun, Moon, Menu, X, AlertTriangle, XOctagon, 
   Frown, Timer, Play, Pause, Volume2, VolumeX, ShoppingCart, Trash2,
-  ShieldCheck, Sparkles, Building2, Zap, Activity, Filter, Settings, Wrench, Focus, RotateCcw, RefreshCw, Tool
+  ShieldCheck, Sparkles, Building2, Zap, Activity, Filter, Settings, Wrench, Focus, RotateCcw
 } from 'lucide-react';
 
 // --- INJECTED STYLES ---
@@ -249,7 +249,7 @@ const SERVICE_CATEGORIES = [
       { id: 'r1', icon: Zap, title: 'Tratamento de Choque', desc: 'Ação intensiva focada na reversão imediata de águas turvas e verdes.' },
       { id: 'r2', icon: Activity, title: 'Intervenção Pós-Evento', desc: 'Limpeza e balanceamento químico imediato após festas e grande uso.' },
       { id: 'r3', icon: Filter, title: 'Decantação Profunda', desc: 'Remoção cirúrgica de turbidez e acúmulo severo no fundo da piscina.' },
-      { id: 'r4', icon: RefreshCw, title: 'Ajuste Químico Fino', desc: 'Análise e correção precisa de pH, Alcalinidade e Cloro após desequilíbrio.' }
+      { id: 'r4', icon: RotateCcw, title: 'Ajuste Químico Fino', desc: 'Análise e correção precisa de pH, Alcalinidade e Cloro após desequilíbrio.' }
     ]
   },
   {
@@ -259,7 +259,7 @@ const SERVICE_CATEGORIES = [
       { id: 'e1', icon: Settings, title: 'Troca de Areia do Filtro', desc: 'Renovação do elemento filtrante para elevar a purificação do sistema.' },
       { id: 'e2', icon: Wrench, title: 'Revisão de Moto-Bomba', desc: 'Análise técnica de falhas operacionais, vazamentos e ruídos do motor.' },
       { id: 'e3', icon: Timer, title: 'Automação de Filtragem', desc: 'Instalação de timer para ciclo de limpeza diário e automático.' },
-      { id: 'e4', icon: Tool, title: 'Reparo de Hidráulica', desc: 'Correção de vazamentos em tubulações e registros da casa de máquinas.' }
+      { id: 'e4', icon: Wrench, title: 'Reparo de Hidráulica', desc: 'Correção de vazamentos em tubulações e registros da casa de máquinas.' }
     ]
   }
 ];
@@ -607,7 +607,8 @@ function App() {
         <AnimatePresence>
           {!isLoaded && (
             <motion.div 
-              initial={{ opacity: 1, y: 0 }} exit={{ y: '-100%', opacity: 0 }} transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+              key="preloader"
+              initial={{ opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} exit={{ y: '-100%', opacity: 0 }} transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
               className="fixed inset-0 z-[100] bg-white dark:bg-slate-950 flex flex-col items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
             >
               {/* Técnica para pintar um SVG preto via filtro para alcançar o ciano (Aprox. Tailwind cyan-500) */}
