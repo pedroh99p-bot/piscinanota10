@@ -50,7 +50,7 @@ import {
   Star, Shield, Clock, Instagram, MessageCircle, ImageIcon, 
   ArrowRight, Waves, Sun, Moon, Menu, X, AlertTriangle, XOctagon, 
   Frown, Timer, Play, Pause, Volume2, VolumeX, ShoppingCart, Trash2,
-  ShieldCheck, Sparkles, Building2, Zap, Activity, Filter, Settings, Wrench, Focus, RotateCcw
+  ShieldCheck, Sparkles, Building2, Zap, Activity, Filter, Settings, Wrench, Focus, RotateCcw, RefreshCw, Tool
 } from 'lucide-react';
 
 // --- INJECTED STYLES ---
@@ -238,7 +238,8 @@ const SERVICE_CATEGORIES = [
     services: [
       { id: 'm1', icon: ShieldCheck, title: 'Manutenção Preventiva', desc: 'Limpeza física e controle químico fundamental para segurança da água.' },
       { id: 'm2', icon: Sparkles, title: 'Plano Cristalino (2x)', desc: 'Visitas intensificadas para condomínios e residências exigentes.' },
-      { id: 'm3', icon: Building2, title: 'Gestão para Alto Fluxo', desc: 'Estrutura técnica diária focada em piscinas com alto índice de banhistas.' }
+      { id: 'm3', icon: Building2, title: 'Gestão para Alto Fluxo', desc: 'Estrutura técnica diária focada em piscinas com alto índice de banhistas.' },
+      { id: 'm4', icon: Droplets, title: 'Limpeza de Bordas', desc: 'Remoção de marcas de oleosidade e protetor solar com produtos específicos.' }
     ]
   },
   {
@@ -247,7 +248,8 @@ const SERVICE_CATEGORIES = [
     services: [
       { id: 'r1', icon: Zap, title: 'Tratamento de Choque', desc: 'Ação intensiva focada na reversão imediata de águas turvas e verdes.' },
       { id: 'r2', icon: Activity, title: 'Intervenção Pós-Evento', desc: 'Limpeza e balanceamento químico imediato após festas e grande uso.' },
-      { id: 'r3', icon: Filter, title: 'Decantação Profunda', desc: 'Remoção cirúrgica de turbidez e acúmulo severo no fundo da piscina.' }
+      { id: 'r3', icon: Filter, title: 'Decantação Profunda', desc: 'Remoção cirúrgica de turbidez e acúmulo severo no fundo da piscina.' },
+      { id: 'r4', icon: RefreshCw, title: 'Ajuste Químico Fino', desc: 'Análise e correção precisa de pH, Alcalinidade e Cloro após desequilíbrio.' }
     ]
   },
   {
@@ -256,7 +258,8 @@ const SERVICE_CATEGORIES = [
     services: [
       { id: 'e1', icon: Settings, title: 'Troca de Areia do Filtro', desc: 'Renovação do elemento filtrante para elevar a purificação do sistema.' },
       { id: 'e2', icon: Wrench, title: 'Revisão de Moto-Bomba', desc: 'Análise técnica de falhas operacionais, vazamentos e ruídos do motor.' },
-      { id: 'e3', icon: Timer, title: 'Automação de Filtragem', desc: 'Instalação de timer para ciclo de limpeza diário e automático.' }
+      { id: 'e3', icon: Timer, title: 'Automação de Filtragem', desc: 'Instalação de timer para ciclo de limpeza diário e automático.' },
+      { id: 'e4', icon: Tool, title: 'Reparo de Hidráulica', desc: 'Correção de vazamentos em tubulações e registros da casa de máquinas.' }
     ]
   }
 ];
@@ -346,6 +349,17 @@ const OrganicWaveBottom = ({ fill }) => (
   </div>
 );
 
+const GlowingLine = () => (
+  <div className="w-full h-px bg-gradient-to-r from-transparent via-cyan-500/30 dark:via-cyan-400/20 to-transparent relative my-12 z-20">
+    <motion.div 
+      initial={{ x: '-100%', opacity: 0 }}
+      whileInView={{ x: '100%', opacity: [0, 1, 0] }}
+      transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+      className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-cyan-400 dark:via-cyan-300 to-transparent blur-[2px]"
+    />
+  </div>
+);
+
 const Marquee = ({ text, className = "", reverse = false }) => {
   const content = Array(8).fill(text).join("  ✦  ");
   return (
@@ -426,16 +440,17 @@ const VideoPlayer = () => {
 
   return (
     <motion.div variants={scaleUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="relative w-full max-w-sm mx-auto aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/20 dark:border-white/10 group bg-slate-900 z-10">
-      <video ref={videoRef} src={VIDEO_URL} className="w-full h-full object-cover" loop playsInline muted={isMuted} onClick={togglePlay}></video>
-      <div className={`absolute inset-0 bg-black/30 transition-opacity duration-300 flex flex-col justify-between p-6 pointer-events-none ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
-        <div className="flex justify-end pointer-events-auto">
-          <button onClick={toggleMute} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors">
-            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-          </button>
-        </div>
-        <div className="flex justify-center pointer-events-auto">
+      <video ref={videoRef} src={VIDEO_URL} className="w-full h-full object-cover cursor-pointer" loop playsInline muted={isMuted} onClick={togglePlay}></video>
+      <div className="absolute top-6 right-6 z-20">
+        <button onClick={toggleMute} className={`w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors ${isPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}>
+          {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        </button>
+      </div>
+      <div className={`absolute inset-0 transition-opacity duration-300 flex flex-col justify-between p-6 pointer-events-none ${isPlaying ? 'opacity-0' : 'opacity-100 bg-black/30'}`}>
+        <div className="flex justify-end pointer-events-auto"></div>
+        <div className={`flex justify-center pointer-events-auto transition-all duration-300 ${isPlaying ? 'scale-50' : 'scale-100'}`}>
           <button onClick={togglePlay} className="w-20 h-20 bg-cyan-500/80 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all hover:scale-105 shadow-lg shadow-cyan-500/50 btn-shine">
-            {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-2" />}
+            <Play className="w-8 h-8 ml-2" />
           </button>
         </div>
         <div className="text-white text-center drop-shadow-md">
@@ -901,6 +916,8 @@ function App() {
             </div>
           </section>
 
+          <GlowingLine />
+
           {/* --- THICK ROLLER --- */}
           <div className="py-10 bg-white dark:bg-slate-900 border-y border-slate-100 dark:border-white/5 overflow-hidden flex items-center shadow-sm">
              <Marquee text="TRANSPARÊNCIA TÉCNICA • RESULTADOS COMPROVADOS • " className="text-3xl md:text-5xl font-black uppercase text-stroke-cyan" />
@@ -912,30 +929,38 @@ function App() {
             <div className="absolute inset-0 z-0 bg-white/70 dark:bg-slate-950/80 backdrop-blur-[2px]"></div>
 
             <div className="container mx-auto px-6 relative z-10">
-              <div className="flex flex-col md:flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-between gap-10 md:gap-16 max-w-6xl mx-auto">
+              <div className="flex flex-col items-center justify-center gap-10 max-w-4xl mx-auto">
                 
-                {/* Imagem (Esquerda Mobile/Desktop) */}
-                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="w-full max-w-[280px] md:max-w-[400px] lg:w-1/2 relative shrink-0 order-2 md:order-1">
+                {/* Title (Topo) */}
+                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="text-center w-full">
+                  <div className="inline-flex items-center justify-center gap-3 mb-4">
+                    <span className="w-8 h-1 bg-cyan-500 rounded-full"></span>
+                    <span className="text-cyan-600 dark:text-cyan-400 font-black uppercase tracking-widest text-[10px] md:text-sm">O Especialista</span>
+                    <span className="w-8 h-1 bg-cyan-500 rounded-full"></span>
+                  </div>
+                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white leading-tight">
+                    Nicolas Costa
+                  </h2>
+                </motion.div>
+
+                {/* Imagem */}
+                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="w-full max-w-[300px] md:max-w-[400px] relative shrink-0 mx-auto">
                    <div className="aspect-[4/5] bg-gradient-to-t from-cyan-100/50 to-transparent dark:from-slate-800 dark:to-transparent rounded-[3rem] overflow-hidden flex items-end justify-center border-[3px] md:border-4 border-white dark:border-slate-800 shadow-2xl relative z-10 px-1 pt-6">
                      <img src={ESPECIALISTA_IMG} alt="Nicolas Costa Especialista" className="w-[110%] object-contain object-bottom drop-shadow-2xl translate-y-1" />
                    </div>
                    <div className="absolute top-4 -right-4 w-full h-full bg-cyan-500/10 dark:bg-cyan-500/10 rounded-[3rem] -z-0 border border-cyan-500/20"></div>
                 </motion.div>
                 
-                {/* Textos (Direita Mobile/Desktop) */}
-                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="w-full lg:w-1/2 flex flex-col justify-center text-left order-1 md:order-2 mt-4 md:mt-0 mb-8 md:mb-0">
-                  <div className="inline-flex items-center gap-3 mb-4 md:mb-6">
-                    <span className="w-8 md:w-12 h-1 bg-cyan-500 rounded-full"></span>
-                    <span className="text-cyan-600 dark:text-cyan-400 font-black uppercase tracking-widest text-[10px] md:text-sm">O Especialista - Nicolas Costa</span>
-                  </div>
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-5 md:mb-8 text-slate-900 dark:text-white leading-tight">
+                {/* Textos, Bullets e CTA */}
+                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="w-full flex flex-col justify-center text-center mt-4 md:mt-0">
+                  <h3 className="text-2xl md:text-3xl font-black mb-5 md:mb-8 text-slate-900 dark:text-white leading-tight">
                     Uma abordagem que <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 dark:from-cyan-400 dark:to-blue-400">elimina improvisos.</span>
-                  </h2>
-                  <div className="text-slate-600 dark:text-slate-300 space-y-3 md:space-y-5 mb-8 md:mb-10 text-sm md:text-lg font-medium leading-relaxed">
+                  </h3>
+                  <div className="text-slate-600 dark:text-slate-300 space-y-3 md:space-y-5 mb-8 md:mb-10 text-sm md:text-lg font-medium leading-relaxed max-w-2xl mx-auto">
                     <p>Todo o processo da Piscina NOTA10 é supervisionado para garantir que a sua área de lazer nunca se torne um problema de rotina.</p>
                     <p>Adotamos metodologias profissionais de controle químico e físico, entregando segurança e valorização para o seu imóvel.</p>
                   </div>
-                  <ul className="space-y-3 md:space-y-4 mb-8 md:mb-10 text-left mx-0">
+                  <ul className="space-y-3 md:space-y-4 mb-8 md:mb-10 text-left mx-auto w-fit">
                     {["Avaliação físico-química de precisão", "Transparência técnica nas visitas", "Rotina rigorosa e documentada"].map((item, i) => (
                        <li key={i} className="flex items-center gap-3 text-slate-700 dark:text-slate-200 font-bold text-xs md:text-base">
                           <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center flex-shrink-0">
@@ -945,7 +970,7 @@ function App() {
                        </li>
                     ))}
                   </ul>
-                  <div className="flex justify-start mb-10">
+                  <div className="flex justify-center mb-10">
                      <Button href={getWhatsAppLink("Olá Nicolas, busco o suporte da direção técnica para a minha piscina.")} variant="primary" icon={WhatsAppIcon} className="w-full sm:w-auto text-sm md:text-base px-6 py-4">
                        Falar com Nicolas
                      </Button>
@@ -977,6 +1002,15 @@ function App() {
                   Defina a estrutura do projeto
                 </h2>
                 <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">Navegue pelas frentes de trabalho, selecione as adequadas à sua estrutura e solicite nosso alinhamento comercial.</p>
+              </motion.div>
+
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="bg-gradient-to-r from-cyan-50 to-white dark:from-slate-900/50 dark:to-slate-900 border border-cyan-200 dark:border-cyan-800/50 rounded-2xl p-5 mb-10 flex items-center gap-4 max-w-2xl mx-auto shadow-sm">
+                <div className="w-10 h-10 bg-cyan-100 dark:bg-cyan-800 rounded-full flex items-center justify-center shrink-0">
+                  <Star className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 text-left">
+                  <strong className="text-cyan-700 dark:text-cyan-400 font-black">Incentivo Especial:</strong> Selecione 2 ou mais frentes e garanta uma <span className="underline decoration-cyan-400 decoration-2 font-bold">avaliação técnica prioritária gratuita</span> no local.
+                </p>
               </motion.div>
 
               <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="flex flex-wrap justify-center gap-2 mb-12">
