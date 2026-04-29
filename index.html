@@ -55,20 +55,21 @@ import {
 
 // --- INJECTED STYLES ---
 const customStyles = `
-  .perspective-1000 { perspective: 1000px; }
-  .transform-style-3d { transform-style: preserve-3d; }
-  .backface-hidden { backface-visibility: hidden; }
-  .rotate-y-180 { transform: rotateY(180deg); }
+  .perspective-1000 { perspective: 1000px; -webkit-perspective: 1000px; }
+  .transform-style-3d { transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .rotate-y-180 { transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
   
   .flip-card-inner {
     transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
     transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
   }
   
   @media (hover: hover) and (pointer: fine) {
-    .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+    .flip-card:hover .flip-card-inner { transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
   }
-  .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+  .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); -webkit-transform: rotateY(180deg); }
 
   .marquee-container { display: flex; overflow: hidden; white-space: nowrap; }
   .marquee-content { display: flex; animation: marquee 60s linear infinite; }
