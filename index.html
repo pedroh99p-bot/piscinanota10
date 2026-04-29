@@ -1,3 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piscina NOTA10 - Especialistas em Manutenção</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Babel Standalone -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Import Maps -->
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18.2.0",
+      "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+      "framer-motion": "https://esm.sh/framer-motion@10.16.4?external=react,react-dom",
+      "lucide-react": "https://esm.sh/lucide-react@0.292.0?external=react,react-dom"
+    }
+  }
+  </script>
+</head>
+<body class="antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+import { createRoot } from 'react-dom/client';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { 
@@ -423,7 +468,7 @@ const AnimatedCounter = ({ target, label }) => {
 
 // --- MAIN APP ---
 
-export default function App() {
+function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [progress, setProgress] = useState(0);
   const [quizStep, setQuizStep] = useState(0);
@@ -1180,3 +1225,8 @@ export default function App() {
     </div>
   );
 }
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
+  </script>
+</body>
+</html>
