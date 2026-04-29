@@ -102,17 +102,6 @@ const customStyles = `
     color: transparent;
   }
 
-  /* Bolhas Flutuantes */
-  @keyframes blob {
-    0% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-    100% { transform: translate(0px, 0px) scale(1); }
-  }
-  .animate-blob { animation: blob 10s infinite; }
-  .animation-delay-2000 { animation-delay: 2s; }
-  .animation-delay-4000 { animation-delay: 4s; }
-
   /* Testimonial Auto-Scroll */
   .testimonial-track {
     display: flex;
@@ -235,10 +224,10 @@ const scaleUp = {
 
 // --- DATA MOCKS ---
 const PAIN_SOLUTION_CARDS = [
-  { id: 1, icon: AlertTriangle, painTitle: "Água Verde e Turva", painDesc: "Algas alterando a água, causando aspecto sujo e impacto na área de lazer.", solutionTitle: "Tratamento de Choque", solutionDesc: "Processo técnico de decantação que trabalha para devolver a cristalinidade de forma rápida." },
-  { id: 2, icon: Frown, painTitle: "Ardência nos Olhos", painDesc: "Uso incorreto de produtos gerando cloramina e desconforto extremo durante o uso.", solutionTitle: "Equilíbrio Químico", solutionDesc: "Ajuste profissional de pH, Alcalinidade e Cloro livre, com foco em proporcionar um banho seguro." },
-  { id: 3, icon: XOctagon, painTitle: "Manutenção Irregular", painDesc: "Profissionais que faltam, não limpam direito e geram custos inesperados.", solutionTitle: "Acompanhamento Premium", solutionDesc: "Equipe técnica padronizada, envio de relatórios e rotina de cuidados bem estruturada." },
-  { id: 4, icon: Droplets, painTitle: "Bomba Fazendo Barulho", painDesc: "Equipamentos desgastados consumindo muita energia e perdendo eficiência de filtragem.", solutionTitle: "Avaliação Técnica", solutionDesc: "Análise do sistema, troca da areia do filtro e otimização hidráulica para melhor desempenho." }
+  { id: 1, icon: AlertTriangle, painTitle: "Água Verde e Turva", painDesc: "Algas alterando a água, causando aspecto sujo e impacto na área de lazer.", solutionTitle: "Tratamento de Choque", solutionDesc: "Decantação rápida para devolver a cristalinidade." },
+  { id: 2, icon: Frown, painTitle: "Ardência nos Olhos", painDesc: "Uso incorreto de produtos gerando cloramina e desconforto extremo durante o uso.", solutionTitle: "Equilíbrio Químico", solutionDesc: "Ajuste de pH e Cloro para um banho 100% seguro." },
+  { id: 3, icon: XOctagon, painTitle: "Manutenção Irregular", painDesc: "Profissionais que faltam, não limpam direito e geram custos inesperados.", solutionTitle: "Acompanhamento Premium", solutionDesc: "Equipe pontual com rotina técnica e relatórios." },
+  { id: 4, icon: Droplets, painTitle: "Bomba Fazendo Barulho", painDesc: "Equipamentos desgastados consumindo muita energia e perdendo eficiência de filtragem.", solutionTitle: "Avaliação Técnica", solutionDesc: "Revisão do sistema e filtro para máximo desempenho." }
 ];
 
 const QUIZ_QUESTIONS = [
@@ -615,7 +604,7 @@ function App() {
     <div className={theme}>
       <style>{customStyles}</style>
       
-      <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-500 relative">
+      <div className="min-h-screen bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-500 relative">
         
         <div className="fixed inset-0 z-0 flex items-center justify-center opacity-[0.02] dark:opacity-[0.03] pointer-events-none">
           <img src={LOGO_PEQUENA} alt="" className="w-[80%] md:w-1/3 object-contain grayscale dark:invert" />
@@ -627,7 +616,7 @@ function App() {
             <motion.div 
               key="preloader"
               initial={{ opacity: 1, y: 0 }} animate={{ opacity: 1, y: 0 }} exit={{ y: '-100%', opacity: 0 }} transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-              className="fixed inset-0 z-[100] bg-white dark:bg-slate-950 flex flex-col items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+              className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
             >
               {/* Técnica para pintar um SVG preto via filtro para alcançar o ciano (Aprox. Tailwind cyan-500) */}
               <motion.div 
@@ -640,7 +629,7 @@ function App() {
                 }} 
                 className="w-48 h-16 md:h-24 mb-6 bg-cyan-500 logo-shimmer" 
               />
-              <p className="text-cyan-600 dark:text-cyan-400 text-xs md:text-sm mb-6 uppercase tracking-[0.4em] font-black animate-pulse">INICIALIZANDO...</p>
+              <p className="text-cyan-400 text-xs md:text-sm mb-6 uppercase tracking-[0.4em] font-black animate-pulse">INICIALIZANDO...</p>
               
               <div className="w-56 md:w-64 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                 <motion.div className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500" initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ ease: "easeOut" }} />
@@ -744,8 +733,8 @@ function App() {
             </div>
 
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-cyan-400/20 rounded-full blur-[100px] animate-blob"></div>
-              <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
+              <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-cyan-400/20 rounded-full blur-[100px]"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px]"></div>
             </div>
 
             <div className="container mx-auto px-6 relative z-10 w-full">
@@ -1107,21 +1096,21 @@ function App() {
                 initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
                 className="fixed bottom-36 lg:bottom-6 left-0 right-0 lg:right-20 z-[55] flex justify-center lg:justify-start lg:pl-6 px-4 pointer-events-none"
               >
-                <div className="bg-slate-900 dark:bg-slate-800 text-white p-4 pr-6 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-700 flex items-center gap-6 pointer-events-auto w-full max-w-xl">
-                  <div className="relative pl-2 hidden sm:block">
-                    <ShoppingCart className="w-6 h-6 text-cyan-400" />
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">{selectedServices.length}</span>
+                <div className="bg-slate-900 dark:bg-slate-800 text-white p-3 md:p-4 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-700 flex items-center gap-2 md:gap-4 pointer-events-auto w-full max-w-xl overflow-hidden">
+                  <div className="relative pl-1 hidden sm:block shrink-0">
+                    <ShoppingCart className="w-5 h-5 md:w-6 md:h-6 text-cyan-400" />
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center border-2 border-slate-900">{selectedServices.length}</span>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-sm">Escopo Mapeado: {selectedServices.length} Frentes</p>
-                    <p className="text-xs text-slate-400 truncate max-w-[180px] sm:max-w-[300px]">{selectedServices.map(s=>s.title).join(', ')}</p>
+                  <div className="flex-1 min-w-0 px-2">
+                    <p className="font-bold text-xs md:text-sm truncate">Escopo: {selectedServices.length} Frentes</p>
+                    <p className="text-[10px] md:text-xs text-slate-400 truncate w-full">{selectedServices.map(s=>s.title).join(', ')}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                     <button onClick={() => setSelectedServices([])} className="p-2 text-slate-500 hover:text-red-400 transition-colors">
-                       <Trash2 className="w-5 h-5" />
+                  <div className="flex items-center gap-1 md:gap-2 shrink-0">
+                     <button onClick={() => setSelectedServices([])} className="p-1.5 md:p-2 text-slate-500 hover:text-red-400 transition-colors">
+                       <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
                      </button>
-                     <Button onClick={sendCartToWhatsApp} variant="whatsapp" className="py-2.5 px-4 text-sm" icon={WhatsAppIcon}>
-                       Avançar Solicitação
+                     <Button onClick={sendCartToWhatsApp} variant="whatsapp" className="py-2 px-3 md:py-2.5 md:px-4 text-[10px] md:text-sm whitespace-nowrap" icon={WhatsAppIcon}>
+                       Avançar
                      </Button>
                   </div>
                 </div>
@@ -1255,9 +1244,6 @@ function App() {
               <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto p-2 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-2xl">
                 <Button href={getWhatsAppLink("Olá, quero agendar uma avaliação técnica para a minha piscina.")} variant="whatsapp" className="w-full sm:w-auto text-lg px-8 py-4" icon={WhatsAppIcon}>
                   Agendar visita técnica
-                </Button>
-                <Button href={getWhatsAppLink("Olá, gostaria de alinhar diretrizes sobre a manutenção da minha piscina.")} variant="outline" className="w-full sm:w-auto text-lg px-8 py-4 border-red-500/40 text-red-100 hover:bg-red-500/10" icon={WhatsAppIcon}>
-                  Alinhar via WhatsApp
                 </Button>
               </motion.div>
             </div>
