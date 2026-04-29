@@ -1,0 +1,1182 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
+import { 
+  Droplets, ChevronRight, ChevronLeft, MapPin, CheckCircle, 
+  Star, Shield, Clock, Instagram, MessageCircle, ImageIcon, 
+  ArrowRight, Waves, Sun, Moon, Menu, X, AlertTriangle, XOctagon, 
+  Frown, Timer, Play, Pause, Volume2, VolumeX, ShoppingCart, Trash2,
+  ShieldCheck, Sparkles, Building2, Zap, Activity, Filter, Settings, Wrench, Focus, RotateCcw
+} from 'lucide-react';
+
+// --- INJECTED STYLES ---
+const customStyles = `
+  .perspective-1000 { perspective: 1000px; }
+  .transform-style-3d { transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; }
+  .rotate-y-180 { transform: rotateY(180deg); }
+  
+  .flip-card-inner {
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+  
+  @media (hover: hover) and (pointer: fine) {
+    .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+  }
+  .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+
+  .marquee-container { display: flex; overflow: hidden; white-space: nowrap; }
+  .marquee-content { display: flex; animation: marquee 60s linear infinite; }
+  .marquee-content:hover { animation-play-state: paused; }
+  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+  .text-stroke-cyan {
+    -webkit-text-stroke: 1.5px #06b6d4;
+    color: transparent;
+  }
+  .dark .text-stroke-cyan {
+    -webkit-text-stroke: 1.5px #0891b2;
+    color: transparent;
+  }
+
+  /* Bolhas Flutuantes */
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+  .animate-blob { animation: blob 10s infinite; }
+  .animation-delay-2000 { animation-delay: 2s; }
+  .animation-delay-4000 { animation-delay: 4s; }
+
+  /* Testimonial Auto-Scroll */
+  .testimonial-track {
+    display: flex;
+    width: max-content;
+    animation: scrollTestimonials 50s linear infinite;
+  }
+  .testimonial-track:hover {
+    animation-play-state: paused;
+  }
+  @keyframes scrollTestimonials {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Premium Light Sweep Animation for CTAs */
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-shine::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+    transform: skewX(-25deg);
+    animation: sweep 4s infinite;
+  }
+  @keyframes sweep {
+    0% { left: -100%; }
+    20% { left: 200%; }
+    100% { left: 200%; }
+  }
+
+  /* Preloader Logo Shimmer */
+  .logo-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .logo-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -150%; width: 50%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent);
+    transform: skewX(-25deg);
+    animation: shimmer-sweep 2.5s infinite;
+  }
+  @keyframes shimmer-sweep {
+    0% { left: -150%; }
+    100% { left: 200%; }
+  }
+
+  /* Animated Gradient Text */
+  .animate-gradient-text {
+    background-size: 200% auto;
+    animation: gradientText 4s linear infinite;
+  }
+  @keyframes gradientText {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  /* Text Glow Animation */
+  .text-glow {
+    text-shadow: 0 0 30px rgba(6, 182, 212, 0.4);
+    animation: pulse-glow 3s infinite alternate;
+  }
+  @keyframes pulse-glow {
+    0% { text-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+    100% { text-shadow: 0 0 45px rgba(6, 182, 212, 0.6); }
+  }
+`;
+
+// --- ASSETS & CONSTANTS ---
+const LOGO_PRINCIPAL = "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777471757/branding_PISCINA_NOTA_10_2_nn4qxw.svg";
+const LOGO_PEQUENA = "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777471794/branding_PISCINA_NOTA_10_3_gxpulk.svg";
+const TEXTURA_BRANCA = "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777479466/branding_PISCINA_NOTA_10_4_n5r9gh.svg";
+const IMAGEM_HERO = "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777471670/c407f63d-9e76-49e4-b245-5b001dbcb0d1_abk6ou.png";
+const VIDEO_URL = "https://res.cloudinary.com/dm9mnc97u/video/upload/v1777471165/piscinanota10_tazmeo.mp4";
+const ESPECIALISTA_IMG = "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777482924/branding_PISCINA_NOTA_10_7_iorpda.svg";
+
+const WHATSAPP_NUMBER = "5521985355807";
+const INSTAGRAM_URL = "https://www.instagram.com/piscinanota10/";
+
+const getWhatsAppLink = (message) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+// --- CUSTOM WHATSAPP ICON ---
+const WhatsAppIcon = ({ className }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.305-.88-.653-1.473-1.46-1.646-1.758-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51h-.57c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+);
+
+// --- ANIMATION VARIANTS ---
+const fadeInUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+};
+
+const scaleUp = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] } }
+};
+
+// --- DATA MOCKS ---
+const PAIN_SOLUTION_CARDS = [
+  { id: 1, icon: AlertTriangle, painTitle: "Água Verde e Turva", painDesc: "Algas alterando a água, causando aspecto sujo e impacto na área de lazer.", solutionTitle: "Tratamento de Choque", solutionDesc: "Processo técnico de decantação que trabalha para devolver a cristalinidade de forma rápida." },
+  { id: 2, icon: Frown, painTitle: "Ardência nos Olhos", painDesc: "Uso incorreto de produtos gerando cloramina e desconforto extremo durante o uso.", solutionTitle: "Equilíbrio Químico", solutionDesc: "Ajuste profissional de pH, Alcalinidade e Cloro livre, com foco em proporcionar um banho seguro." },
+  { id: 3, icon: XOctagon, painTitle: "Manutenção Irregular", painDesc: "Profissionais que faltam, não limpam direito e geram custos inesperados.", solutionTitle: "Acompanhamento Premium", solutionDesc: "Equipe técnica padronizada, envio de relatórios e rotina de cuidados bem estruturada." },
+  { id: 4, icon: Droplets, painTitle: "Bomba Fazendo Barulho", painDesc: "Equipamentos desgastados consumindo muita energia e perdendo eficiência de filtragem.", solutionTitle: "Avaliação Técnica", solutionDesc: "Análise do sistema, troca da areia do filtro e otimização hidráulica para melhor desempenho." }
+];
+
+const QUIZ_QUESTIONS = [
+  { id: 'estado', question: "1. Qual o estado atual da sua piscina?", options: ["🟢 Água esverdeada", "🌫️ Água turva", "💧 Limpa, mas sem rotina de manutenção", "⚠️ Vazia/Precisando de reparo"] },
+  { id: 'frequencia', question: "2. Qual a frequência de manutenção atual?", options: ["❌ Nenhuma", "📅 1x por semana", "🔄 2x ou mais por semana", "🤷‍♂️ Irregular"] },
+  { id: 'imovel', question: "3. Qual o tipo de imóvel?", options: ["🏠 Casa", "🏢 Condomínio", "🌅 Cobertura", "🏢 Comercial"] },
+  { id: 'regiao', question: "4. Em qual região do RJ você está?", options: ["📍 Barra/Recreio", "📍 Zona Sul", "📍 Tijuca/Centro", "📍 Outra região"] },
+  { id: 'interesse', question: "5. Qual o foco principal hoje?", options: ["🧹 Limpeza avulsa", "📋 Rotina de manutenção mensal", "🧪 Processo de decantação", "🔧 Avaliação de equipamentos"] }
+];
+
+const SERVICE_CATEGORIES = [
+  {
+    id: 'manutencao',
+    name: 'Rotina de Manutenção',
+    services: [
+      { id: 'm1', icon: ShieldCheck, title: 'Manutenção Preventiva', desc: 'Limpeza física e controle químico fundamental para segurança da água.' },
+      { id: 'm2', icon: Sparkles, title: 'Plano Cristalino (2x)', desc: 'Visitas intensificadas para condomínios e residências exigentes.' },
+      { id: 'm3', icon: Building2, title: 'Gestão para Alto Fluxo', desc: 'Estrutura técnica diária focada em piscinas com alto índice de banhistas.' }
+    ]
+  },
+  {
+    id: 'recuperacao',
+    name: 'Recuperação & Limpeza',
+    services: [
+      { id: 'r1', icon: Zap, title: 'Tratamento de Choque', desc: 'Ação intensiva focada na reversão imediata de águas turvas e verdes.' },
+      { id: 'r2', icon: Activity, title: 'Intervenção Pós-Evento', desc: 'Limpeza e balanceamento químico imediato após festas e grande uso.' },
+      { id: 'r3', icon: Filter, title: 'Decantação Profunda', desc: 'Remoção cirúrgica de turbidez e acúmulo severo no fundo da piscina.' }
+    ]
+  },
+  {
+    id: 'equipamentos',
+    name: 'Filtros & Equipamentos',
+    services: [
+      { id: 'e1', icon: Settings, title: 'Troca de Areia do Filtro', desc: 'Renovação do elemento filtrante para elevar a purificação do sistema.' },
+      { id: 'e2', icon: Wrench, title: 'Revisão de Moto-Bomba', desc: 'Análise técnica de falhas operacionais, vazamentos e ruídos do motor.' },
+      { id: 'e3', icon: Timer, title: 'Automação de Filtragem', desc: 'Instalação de timer para ciclo de limpeza diário e automático.' }
+    ]
+  }
+];
+
+const TESTIMONIALS = [
+  { 
+    id: 1, 
+    img: "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777483096/bc80edac-c504-457c-bafd-8d97ad8b8bff_qmfsim.png", 
+    name: "Carlos Eduardo", 
+    neighborhood: "Barra da Tijuca",
+    service: "Tratamento de Choque",
+    text: "Estava quase esvaziando a piscina por causa da água verde. Eles realizaram o tratamento de choque em 48h com excelente resultado técnico." 
+  },
+  { 
+    id: 2, 
+    img: "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777483092/286efd68-a85d-4cf3-a928-7aef6e62df8e_aikdar.png", 
+    name: "Mariana Silva", 
+    neighborhood: "Recreio",
+    service: "Plano Cristalino",
+    text: "Uma verdadeira equipe técnica. A rotina é mantida com rigor, o ambiente fica limpo e o cuidado com os parâmetros traz tranquilidade." 
+  },
+  { 
+    id: 3, 
+    img: "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777483096/2493a2b0-06d8-497d-9e10-45b6632cd154_gw4pc5.png", 
+    name: "Roberto Alves", 
+    neighborhood: "Zona Sul",
+    service: "Revisão de Moto-Bomba",
+    text: "Trocaram a areia do meu filtro e ajustaram o sistema da bomba. O barulho sumiu e a eficiência de filtragem aumentou visivelmente." 
+  },
+  { 
+    id: 4, 
+    img: "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777483096/140f28dc-1e1d-4e56-9324-16f2834644c4_y9b7kg.png", 
+    name: "Fernanda Costa", 
+    neighborhood: "Tijuca",
+    service: "Manutenção Preventiva",
+    text: "Ótimo padrão de acompanhamento mensal no RJ. Processo transparente que evita surpresas e desgaste ao longo do mês." 
+  },
+  { 
+    id: 5, 
+    img: "https://res.cloudinary.com/dm9mnc97u/image/upload/v1777483141/0756a67c-1147-4166-83c6-bc22f139b391_b7rpth.png", 
+    name: "João Mendes", 
+    neighborhood: "Jacarepaguá",
+    service: "Intervenção Pós-Evento",
+    text: "Tivemos um evento grande no fim de semana e a equipe deixou a água impecável rapidamente para a semana seguinte." 
+  }
+];
+
+const CAROUSEL_ITEMS = [...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS];
+
+// --- REUSABLE COMPONENTS ---
+
+const Button = ({ children, variant = 'primary', onClick, className = '', icon: Icon, href }) => {
+  const baseStyle = "inline-flex items-center justify-center gap-2 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 active:scale-95";
+  const shineClass = (variant === 'primary' || variant === 'whatsapp') ? 'btn-shine' : '';
+  
+  const variants = {
+    primary: "bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white shadow-[0_5px_25px_-5px_rgba(6,182,212,0.6)] px-6 py-3 border border-cyan-400/30 hover:shadow-[0_8px_30px_-5px_rgba(6,182,212,0.8)]",
+    whatsapp: "bg-gradient-to-r from-[#20bd5a] to-[#25D366] hover:from-[#25D366] hover:to-[#2be873] text-white shadow-[0_5px_25px_-5px_rgba(37,211,102,0.6)] px-6 py-3 border border-[#25D366]/30 hover:shadow-[0_8px_30px_-5px_rgba(37,211,102,0.8)]",
+    outline: "border-2 border-white/80 text-white hover:bg-white/15 px-6 py-3 backdrop-blur-sm hover:shadow-[0_5px_20px_rgba(255,255,255,0.1)]",
+    outlineDark: "border-2 border-slate-800 text-slate-800 dark:border-white/80 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10 px-6 py-3 hover:shadow-[0_5px_20px_rgba(0,0,0,0.05)]",
+    smallWa: "bg-gradient-to-r from-[#20bd5a] to-[#25D366] hover:from-[#25D366] hover:to-[#2be873] text-white text-xs px-4 py-2.5 shadow-md border border-[#25D366]/30"
+  };
+
+  const Element = href ? 'a' : 'button';
+  
+  return (
+    <Element onClick={onClick} href={href} target={href ? "_blank" : undefined} rel={href ? "noopener noreferrer" : undefined} className={`${baseStyle} ${variants[variant]} ${shineClass} ${className}`}>
+      {Icon && <Icon className={variant === 'smallWa' ? "w-3.5 h-3.5" : "w-5 h-5"} />}
+      {children}
+    </Element>
+  );
+};
+
+const OrganicWaveTop = ({ fill }) => (
+  <div className="w-full overflow-hidden leading-none rotate-180 -mt-[1px] relative z-20">
+    <svg className="relative block w-[calc(100%+1.3px)] h-[40px] md:h-[80px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className={fill}></path>
+    </svg>
+  </div>
+);
+
+const OrganicWaveBottom = ({ fill }) => (
+  <div className="w-full overflow-hidden leading-none -mb-[1px] relative z-20">
+    <svg className="relative block w-[calc(100%+1.3px)] h-[40px] md:h-[80px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+      <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className={fill}></path>
+    </svg>
+  </div>
+);
+
+const Marquee = ({ text, className = "", reverse = false }) => {
+  const content = Array(8).fill(text).join("  ✦  ");
+  return (
+    <div className={`marquee-container w-full ${className}`}>
+      <div className="marquee-content gap-8" style={{ animationDirection: reverse ? 'reverse' : 'normal' }}>
+        <span className="pl-8">{content}</span>
+        <span className="pl-8">{content}</span>
+      </div>
+    </div>
+  );
+};
+
+// --- COMPLEX COMPONENTS ---
+
+const FlipCard = ({ card }) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const Icon = card.icon;
+
+  return (
+    <motion.div variants={fadeInUp} className={`flip-card w-full h-[15rem] md:h-[18rem] perspective-1000 cursor-pointer ${isFlipped ? 'flipped' : ''}`} onClick={() => setIsFlipped(!isFlipped)}>
+      <div className="flip-card-inner relative w-full h-full text-center transition-transform transform-style-3d shadow-xl rounded-[2rem]">
+        
+        {/* FRENTE COM MOLDURA VERMELHA */}
+        <div className="absolute w-full h-full backface-hidden bg-white dark:bg-slate-900 border-2 border-red-500/30 dark:border-red-500/20 rounded-[2rem] p-4 md:p-5 flex flex-col items-center justify-center overflow-hidden shadow-[inset_0_0_20px_rgba(239,68,68,0.05)]">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] dark:opacity-[0.04]">
+            <img src={LOGO_PEQUENA} alt="" className="w-2/3 object-contain grayscale mix-blend-multiply dark:mix-blend-screen" />
+          </div>
+          
+          <div className="w-12 h-12 md:w-14 md:h-14 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-3 border border-red-100 dark:border-red-900/30 relative z-10">
+             <Icon className="w-6 h-6 text-red-500 dark:text-red-400" />
+          </div>
+          <h3 className="text-base md:text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 relative z-10 px-2">{card.painTitle}</h3>
+          <p className="text-[11px] md:text-xs text-slate-500 dark:text-slate-400 line-clamp-3 mb-3 relative z-10 px-2">{card.painDesc}</p>
+          
+          <div className="mt-auto flex items-center gap-1.5 text-[10px] md:text-xs font-bold uppercase tracking-widest text-red-500/80 animate-pulse relative z-10 bg-red-50 dark:bg-red-900/20 px-4 py-1.5 rounded-full">
+            <RotateCcw className="w-3 h-3 md:w-4 md:h-4" /> Toque para ver solução
+          </div>
+        </div>
+
+        {/* VERSO */}
+        <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-cyan-600 to-blue-800 dark:from-cyan-900 dark:to-blue-950 rounded-[2rem] p-4 md:p-5 flex flex-col items-center justify-center border border-cyan-400/20 text-white overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04]">
+            <img src={LOGO_PEQUENA} alt="" className="w-2/3 object-contain brightness-0 invert" />
+          </div>
+
+          <CheckCircle className="w-8 h-8 md:w-10 md:h-10 text-cyan-300 mb-2 relative z-10" />
+          <h3 className="text-sm md:text-base font-bold mb-2 relative z-10">{card.solutionTitle}</h3>
+          <p className="text-[11px] md:text-xs text-cyan-50/90 line-clamp-4 mb-4 relative z-10 px-1 leading-relaxed">{card.solutionDesc}</p>
+          
+          <Button variant="smallWa" href={getWhatsAppLink(`Olá, tenho interesse na solução técnica: ${card.solutionTitle}`)} icon={WhatsAppIcon} className="mt-auto w-full relative z-10 py-2.5">
+            Falar com a Equipe
+          </Button>
+        </div>
+
+      </div>
+    </motion.div>
+  );
+};
+
+const VideoPlayer = () => {
+  const videoRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) videoRef.current.pause();
+      else videoRef.current.play();
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  return (
+    <motion.div variants={scaleUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="relative w-full max-w-sm mx-auto aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/20 dark:border-white/10 group bg-slate-900 z-10">
+      <video ref={videoRef} src={VIDEO_URL} className="w-full h-full object-cover" loop playsInline muted={isMuted} onClick={togglePlay}></video>
+      <div className={`absolute inset-0 bg-black/30 transition-opacity duration-300 flex flex-col justify-between p-6 pointer-events-none ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
+        <div className="flex justify-end pointer-events-auto">
+          <button onClick={toggleMute} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+          </button>
+        </div>
+        <div className="flex justify-center pointer-events-auto">
+          <button onClick={togglePlay} className="w-20 h-20 bg-cyan-500/80 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-cyan-500 transition-all hover:scale-105 shadow-lg shadow-cyan-500/50 btn-shine">
+            {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-2" />}
+          </button>
+        </div>
+        <div className="text-white text-center drop-shadow-md">
+          <p className="font-bold uppercase tracking-widest text-xs mb-1 text-cyan-300">Padrão Técnico</p>
+          <p className="font-medium text-sm">O cuidado NOTA10 na prática.</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const AnimatedCounter = ({ target, label }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.5 });
+
+  useEffect(() => {
+    if (isInView) {
+      let start = 0;
+      const duration = 2000;
+      const incrementTime = duration / target;
+      const timer = setInterval(() => {
+        start += 1;
+        setCount(start);
+        if (start >= target) clearInterval(timer);
+      }, incrementTime);
+      return () => clearInterval(timer);
+    }
+  }, [target, isInView]);
+
+  return (
+    <div ref={ref} className="flex flex-col items-center justify-center p-3 md:p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-xl md:rounded-2xl border border-slate-200/50 dark:border-white/10 shadow-sm w-full">
+      <span className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 dark:from-cyan-400 dark:to-cyan-200 mb-1">+{count}</span>
+      <span className="text-[9px] md:text-xs font-bold text-slate-500 uppercase tracking-widest text-center leading-tight">{label}</span>
+    </div>
+  );
+};
+
+// --- MAIN APP ---
+
+export default function App() {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [quizStep, setQuizStep] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(14 * 60 + 59);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('theme') || 'light';
+    return 'light';
+  });
+
+  useEffect(() => localStorage.setItem('theme', theme), [theme]);
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
+  const [activeTab, setActiveTab] = useState(SERVICE_CATEGORIES[0].id);
+  const [selectedServices, setSelectedServices] = useState([]);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded) {
+      const interval = setInterval(() => {
+        setProgress(p => {
+          if (p >= 100) {
+            clearInterval(interval);
+            setTimeout(() => setIsLoaded(true), 600);
+            return 100;
+          }
+          return p + Math.floor(Math.random() * 15) + 5;
+        });
+      }, 80);
+      return () => clearInterval(interval);
+    }
+  }, [isLoaded]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTimeLeft(prev => prev > 0 ? prev - 1 : 0), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const scrollTo = (id) => {
+    setMobileMenuOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleQuizAnswer = (answer) => {
+    const currentQuestionId = QUIZ_QUESTIONS[quizStep].id;
+    setAnswers(prev => ({ ...prev, [currentQuestionId]: answer }));
+    
+    if (quizStep < QUIZ_QUESTIONS.length) {
+      setTimeout(() => setQuizStep(prev => prev + 1), 350);
+    }
+  };
+
+  const generateDiagnosis = () => {
+    if (!answers.estado) return "";
+    const needsShock = answers.estado.includes("esverdeada") || answers.estado.includes("turva") || answers.estado.includes("Vazia");
+    
+    let diag = "";
+    if (needsShock) {
+      diag += "O quadro indica a adequação de uma intervenção técnica ou recuperação estruturada. ";
+    } else {
+      diag += "A água apresenta boas condições iniciais, cenário ideal para a implementação de uma rotina de cuidados técnicos. ";
+    }
+    
+    const imovel = (answers.imovel || "").replace(/[^\w\s]/g, '').trim().toLowerCase();
+    diag += `A avaliação visa estruturar um processo contínuo voltado para ${imovel || 'seu espaço'}, com foco na durabilidade do tratamento.`;
+    return diag;
+  };
+
+  const sendQuizToWhatsApp = () => {
+    const msg = `Olá! Realizei o diagnóstico interativo no site da Piscina NOTA10.\n\n📊 *Resumo do Quadro:*\n- Estado: ${answers.estado}\n- Rotina atual: ${answers.frequencia}\n- Ambiente: ${answers.imovel}\n- Região: ${answers.regiao}\n- Foco: ${answers.interesse}\n\nGostaria de solicitar uma avaliação técnica detalhada.`;
+    window.open(getWhatsAppLink(msg), '_blank');
+  };
+
+  const toggleService = (service) => {
+    setSelectedServices(prev => {
+      const exists = prev.find(s => s.id === service.id);
+      if (exists) return prev.filter(s => s.id !== service.id);
+      return [...prev, service];
+    });
+  };
+
+  const sendCartToWhatsApp = () => {
+    const serviceList = selectedServices.map(s => `✅ ${s.title}`).join('\n');
+    const msg = `Olá! Navegando pelo site da Piscina NOTA10, identifiquei interesse nas seguintes frentes de trabalho:\n\n${serviceList}\n\nPodemos alinhar os detalhes operacionais?`;
+    window.open(getWhatsAppLink(msg), '_blank');
+  };
+
+  return (
+    <div className={theme}>
+      <style>{customStyles}</style>
+      
+      <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-500 relative">
+        
+        {/* --- PRELOADER --- */}
+        <AnimatePresence>
+          {!isLoaded && (
+            <motion.div 
+              initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }}
+              className="fixed inset-0 z-[100] bg-white dark:bg-slate-950 flex flex-col items-center justify-center"
+            >
+              {/* Técnica para pintar um SVG preto via filtro para alcançar o ciano (Aprox. Tailwind cyan-500) */}
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}
+                style={{ 
+                  WebkitMaskImage: `url(${LOGO_PRINCIPAL})`, maskImage: `url(${LOGO_PRINCIPAL})`,
+                  WebkitMaskSize: 'contain', maskSize: 'contain',
+                  WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center', maskPosition: 'center'
+                }} 
+                className="w-48 h-16 md:h-24 mb-6 bg-cyan-500 logo-shimmer" 
+              />
+              <p className="text-cyan-600 dark:text-cyan-400 text-xs md:text-sm mb-6 uppercase tracking-[0.4em] font-black animate-pulse">INICIALIZANDO...</p>
+              
+              <div className="w-56 md:w-64 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                <motion.div className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500" initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ ease: "easeOut" }} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* --- FLOATING SOCIAL BUTTONS --- */}
+        <div className="fixed bottom-6 right-6 z-[60] flex flex-col gap-3">
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+            <Instagram className="w-6 h-6" />
+          </a>
+          <a href={getWhatsAppLink("Olá, vim pelo site e gostaria de falar com um especialista.")} target="_blank" rel="noopener noreferrer" className="w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(37,211,102,0.4)] hover:scale-110 transition-transform">
+            <WhatsAppIcon className="w-7 h-7" />
+          </a>
+        </div>
+
+        {/* --- HEADER WRAPPER --- */}
+        <div className="fixed top-0 left-0 w-full z-50 flex flex-col">
+          {/* --- NAVBAR --- */}
+          <nav className={`w-full transition-all duration-300 backdrop-blur-xl border-b ${isScrolled ? 'h-16 bg-white/95 dark:bg-slate-950/95 shadow-md border-slate-200 dark:border-white/10' : 'h-24 bg-white/90 dark:bg-slate-950/90 border-transparent dark:border-transparent'}`}>
+            <div className="container mx-auto px-6 h-full flex justify-between items-center">
+              
+              <div className="flex items-center cursor-pointer" onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>
+                <img src={LOGO_PEQUENA} alt="Piscina NOTA10" className={`object-contain drop-shadow-sm dark:brightness-200 transition-all duration-300 ${isScrolled ? 'h-10 md:h-12' : 'h-14 md:h-[68px]'}`} />
+              </div>
+
+              <div className="hidden lg:flex items-center gap-10 text-sm font-bold text-slate-600 dark:text-slate-300">
+                <button onClick={() => scrollTo('solucoes')} className="hover:text-cyan-500 transition-colors">Nossa Abordagem</button>
+                <button onClick={() => scrollTo('quiz')} className="hover:text-cyan-500 transition-colors">Diagnóstico</button>
+                <button onClick={() => scrollTo('especialista')} className="hover:text-cyan-500 transition-colors">O Especialista</button>
+                <button onClick={() => scrollTo('servicos')} className="hover:text-cyan-500 transition-colors">Serviços</button>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <button onClick={toggleTheme} className={`p-2.5 rounded-full transition-colors ${isScrolled ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300' : 'bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
+                  {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                </button>
+                
+                <Button href={getWhatsAppLink("Olá, vim pelo site e gostaria de conversar com a equipe técnica.")} variant="whatsapp" className={`hidden sm:flex text-sm px-6 transition-all ${isScrolled ? 'py-2 h-10' : 'py-2.5 h-11'}`} icon={WhatsAppIcon}>
+                  Falar com Especialista
+                </Button>
+
+                <button className="lg:hidden p-2 text-slate-600 dark:text-slate-300" onClick={() => setMobileMenuOpen(true)}>
+                  <Menu className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+          </nav>
+        </div>
+
+        {/* --- MOBILE MENU --- */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMenuOpen(false)} className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 lg:hidden" />
+              <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }} className="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-slate-950/95 backdrop-blur-2xl z-50 lg:hidden flex flex-col shadow-2xl border-l border-white/10 overflow-y-auto">
+                <div className="flex justify-between items-center p-6 border-b border-white/10 relative z-20">
+                  <span className="text-white font-bold text-sm tracking-widest uppercase">Acesso</span>
+                  <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-white/60 hover:text-white transition-colors bg-white/5 rounded-full">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none mt-10">
+                  <img src={LOGO_PEQUENA} alt="" className="w-[80%] object-contain invert" />
+                </div>
+                <div className="flex flex-col p-6 gap-3 font-bold text-slate-200 relative z-20">
+                  <button onClick={() => scrollTo('solucoes')} className="text-left py-4 px-4 rounded-xl hover:bg-white/10 transition-colors border border-transparent hover:border-white/5">Nossa Abordagem</button>
+                  <button onClick={() => scrollTo('quiz')} className="text-left py-4 px-4 rounded-xl hover:bg-white/10 transition-colors border border-transparent hover:border-white/5">Diagnóstico Técnico</button>
+                  <button onClick={() => scrollTo('especialista')} className="text-left py-4 px-4 rounded-xl hover:bg-white/10 transition-colors border border-transparent hover:border-white/5">O Especialista</button>
+                  <button onClick={() => scrollTo('servicos')} className="text-left py-4 px-4 rounded-xl hover:bg-white/10 transition-colors border border-transparent hover:border-white/5">Serviços</button>
+                  <div className="mt-8 pt-8 border-t border-white/10">
+                    <Button href={getWhatsAppLink("Olá, solicito alinhamento comercial.")} variant="whatsapp" className="w-full py-4 justify-center text-base" icon={WhatsAppIcon}>
+                      Atendimento Imediato
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        <div className="overflow-x-hidden pt-[96px]">
+          
+          {/* --- HERO SECTION --- */}
+          <section className="relative min-h-[85vh] flex items-center justify-center pt-24 pb-32 overflow-hidden bg-slate-950">
+            <div className="absolute inset-0 z-0">
+              <img src={IMAGEM_HERO} alt="Fundo Piscina" className="w-full h-full object-cover object-center" />
+              <div className="absolute inset-0 bg-blue-900/60 mix-blend-multiply"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent opacity-90"></div>
+            </div>
+
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-cyan-400/20 rounded-full blur-[100px] animate-blob"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
+            </div>
+
+            <div className="container mx-auto px-6 relative z-10 w-full">
+              <div className="flex flex-col items-center justify-center text-center relative max-w-4xl mx-auto">
+                
+                <motion.div animate={{ y: [0, -12, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="hidden lg:flex absolute -top-8 -left-20 items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 rounded-2xl shadow-xl text-white font-bold text-sm">
+                  <Droplets className="w-5 h-5 text-cyan-400" /> Água cristalina
+                </motion.div>
+                
+                <motion.div animate={{ y: [0, 15, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="hidden lg:flex absolute top-10 -right-16 items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 rounded-2xl shadow-xl text-white font-bold text-sm">
+                  <Shield className="w-5 h-5 text-cyan-400" /> Padrão de cuidado
+                </motion.div>
+
+                <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }} className="hidden lg:flex absolute bottom-8 -left-12 items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 rounded-2xl shadow-xl text-white font-bold text-sm">
+                  <Clock className="w-5 h-5 text-cyan-400" /> Rotina técnica
+                </motion.div>
+
+                <motion.div animate={{ y: [0, 12, 0] }} transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 1.5 }} className="hidden lg:flex absolute bottom-2 -right-8 items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 rounded-2xl shadow-xl text-white font-bold text-sm">
+                  <Star className="w-5 h-5 text-cyan-400" /> +7 anos de experiência
+                </motion.div>
+
+                <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="flex flex-col items-center gap-6 relative z-20 mt-10 lg:mt-0">
+                  <h1 className="text-4xl md:text-6xl lg:text-[5.5rem] font-black leading-[1.05] text-white tracking-tight drop-shadow-lg max-w-4xl text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-white animate-gradient-text text-glow pb-2">
+                    O padrão técnico que o seu lazer exige.
+                  </h1>
+                  <p className="text-lg md:text-2xl text-cyan-50/90 max-w-2xl font-medium drop-shadow-md">
+                    Manutenção especializada no RJ. Água equilibrada, equipamentos otimizados e suporte profissional.
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-5 mt-6 w-full sm:w-auto">
+                    <Button onClick={() => scrollTo('quiz')} variant="primary" icon={ArrowRight} className="py-4 px-10 text-lg">
+                      Avaliar Estrutura
+                    </Button>
+                    <Button href={getWhatsAppLink("Olá, gostaria de entender a rotina de manutenção para minha piscina.")} variant="outline" icon={WhatsAppIcon} className="py-4 px-10 text-lg">
+                      Contato Direto
+                    </Button>
+                  </div>
+                </motion.div>
+                
+              </div>
+            </div>
+          </section>
+
+          <OrganicWaveTop fill="fill-slate-50 dark:fill-slate-900" />
+
+          {/* --- PAIN / SOLUTION FLIP CARDS --- */}
+          <section id="solucoes" className="py-24 relative bg-slate-50 dark:bg-slate-900 transition-colors z-10">
+            <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-cyan-100/50 dark:bg-cyan-900/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+            
+            <div className="container mx-auto px-4 md:px-6 relative z-10">
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="text-center max-w-3xl mx-auto mb-16">
+                <h2 className="text-3xl md:text-5xl font-black mb-6 text-slate-900 dark:text-white tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-cyan-700 dark:from-white dark:to-cyan-400 animate-gradient-text pb-1">
+                  Cenários de impacto
+                </h2>
+                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">Toque nos cards e entenda a abordagem técnica adotada pela Piscina NOTA10.</p>
+              </motion.div>
+              
+              <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto">
+                {PAIN_SOLUTION_CARDS.map(card => <FlipCard key={card.id} card={card} />)}
+              </motion.div>
+            </div>
+          </section>
+
+          <OrganicWaveBottom fill="fill-white dark:fill-slate-950" />
+
+          {/* --- VIDEO SECTION --- */}
+          <section className="py-24 relative overflow-hidden bg-white dark:bg-slate-950 z-10">
+            <div className="absolute right-0 bottom-0 w-[500px] h-[500px] bg-cyan-50/70 dark:bg-cyan-900/10 rounded-full blur-[100px] translate-x-1/4 translate-y-1/4 pointer-events-none"></div>
+            
+            <div className="container mx-auto px-6 relative z-10 grid md:grid-cols-2 gap-12 items-center">
+               <div className="order-2 md:order-1 flex justify-center z-10">
+                  <VideoPlayer />
+               </div>
+               <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="order-1 md:order-2 text-center md:text-left z-20">
+                  <div className="inline-flex items-center gap-3 mb-6 mx-auto md:mx-0">
+                    <span className="w-8 h-1 bg-cyan-500 rounded-full"></span>
+                    <span className="text-cyan-600 dark:text-cyan-400 font-black uppercase tracking-widest text-sm">Abordagem Técnica</span>
+                  </div>
+                  <h2 className="text-3xl md:text-5xl font-black mb-6 text-slate-900 dark:text-white leading-tight">O cuidado na prática.</h2>
+                  <p className="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed mb-8">
+                    Nosso foco é prover um ambiente de lazer estruturado. Trabalhamos para manter os parâmetros ideais de uso através de acompanhamento contínuo e produtos adequados.
+                  </p>
+                  <ul className="space-y-4 mb-10 text-left w-fit mx-auto md:mx-0">
+                    {["Equipe uniformizada e rotina estabelecida", "Uso de produtos de alta performance", "Acompanhamento documentado das visitas"].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-slate-700 dark:text-slate-200 font-bold">
+                          <CheckCircle className="w-5 h-5 text-cyan-500 flex-shrink-0" /> {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="flex justify-center md:justify-start mt-8">
+                     <Button href={getWhatsAppLink("Olá, vi a abordagem técnica de vocês e tenho interesse no processo de acompanhamento.")} variant="primary" icon={ArrowRight}>
+                       Implementar Processo
+                     </Button>
+                  </div>
+               </motion.div>
+            </div>
+          </section>
+
+          <OrganicWaveTop fill="fill-slate-50 dark:fill-slate-900" />
+
+          {/* --- INTERACTIVE QUIZ --- */}
+          <section id="quiz" className="py-24 relative bg-slate-50 dark:bg-slate-900 z-10">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/30 to-transparent dark:from-slate-900 dark:to-slate-950 pointer-events-none"></div>
+
+            <div className="container mx-auto px-6 relative z-10 max-w-3xl">
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="text-center mb-12">
+                <h2 className="text-3xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-cyan-700 dark:from-white dark:to-cyan-400 animate-gradient-text pb-1">
+                  Avaliação Inicial
+                </h2>
+                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">Aponte o cenário da sua área de lazer para desenharmos um escopo estruturado.</p>
+              </motion.div>
+
+              <motion.div variants={scaleUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 md:p-14 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-8 left-1/2 -translate-x-1/2 opacity-10 dark:opacity-20 pointer-events-none">
+                   <img src={LOGO_PEQUENA} alt="Icon" className="h-6 dark:brightness-0 dark:invert grayscale" />
+                </div>
+
+                {quizStep < QUIZ_QUESTIONS.length ? (
+                  <div className="relative z-10">
+                    <div className="mb-10 mt-6">
+                      <div className="flex justify-between text-xs text-cyan-600 dark:text-cyan-400 mb-3 font-bold uppercase tracking-widest">
+                        <span>Passo {Math.min(quizStep + 1, QUIZ_QUESTIONS.length)}</span>
+                        <span>{Math.round((Math.min(quizStep + 1, QUIZ_QUESTIONS.length) / QUIZ_QUESTIONS.length) * 100)}%</span>
+                      </div>
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-gradient-to-r from-cyan-400 to-cyan-500 h-1.5 rounded-full transition-all duration-700 ease-out" style={{ width: `${((quizStep + 1) / QUIZ_QUESTIONS.length) * 100}%` }}></div>
+                      </div>
+                    </div>
+
+                    <AnimatePresence mode="wait">
+                      <motion.div key={quizStep} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
+                        <h3 className="text-2xl md:text-3xl font-bold mb-8 text-slate-900 dark:text-white leading-snug text-center">
+                          {QUIZ_QUESTIONS[quizStep].question}
+                        </h3>
+                        <div className="grid gap-3">
+                          {QUIZ_QUESTIONS[quizStep].options.map((option, idx) => {
+                            const isSelected = answers[QUIZ_QUESTIONS[quizStep].id] === option;
+                            return (
+                              <button
+                                key={idx} onClick={() => handleQuizAnswer(option)}
+                                className={`text-left p-5 rounded-2xl border-2 transition-all duration-300 flex items-center justify-between group
+                                  ${isSelected ? 'border-cyan-500 bg-cyan-50/50 dark:bg-cyan-900/20 shadow-md' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900 hover:border-cyan-300 dark:hover:border-slate-700 hover:shadow-sm'}`}
+                              >
+                                <span className={`font-bold text-base md:text-lg ${isSelected ? 'text-cyan-800 dark:text-cyan-200' : 'text-slate-700 dark:text-slate-300'}`}>
+                                  {option}
+                                </span>
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300
+                                  ${isSelected ? 'border-cyan-500 bg-cyan-500 scale-110' : 'border-slate-300 dark:border-slate-600 scale-100'}`}>
+                                  {isSelected && <CheckCircle className="w-4 h-4 text-white" />}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-10 flex justify-between items-center">
+                          <button 
+                            onClick={() => setQuizStep(prev => Math.max(0, prev - 1))} disabled={quizStep === 0}
+                            className={`text-sm flex items-center gap-1 font-bold uppercase tracking-wider transition-colors 
+                              ${quizStep === 0 ? 'text-slate-300 dark:text-slate-800 cursor-not-allowed' : 'text-slate-500 dark:text-slate-400 hover:text-cyan-500'}`}
+                          >
+                            <ChevronLeft className="w-4 h-4" /> Voltar
+                          </button>
+                        </div>
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                ) : (
+                  <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2 }} className="text-center py-6 mt-6 relative z-10">
+                    <motion.div 
+                       initial={{ rotate: -90, scale: 0 }} animate={{ rotate: 0, scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                       className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-cyan-500/30"
+                    >
+                      <CheckCircle className="w-10 h-10 text-white" />
+                    </motion.div>
+                    <h3 className="text-2xl md:text-3xl font-black mb-4 text-slate-900 dark:text-white">Levantamento Concluído</h3>
+                    
+                    <div className="bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-100 dark:border-cyan-900/50 rounded-2xl p-6 mb-8 text-left relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
+                      <div className="flex items-center gap-2 mb-3 text-cyan-700 dark:text-cyan-400 font-bold uppercase tracking-widest text-xs">
+                        <Shield className="w-4 h-4" /> Resumo Técnico
+                      </div>
+                      <p className="text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
+                        {generateDiagnosis()}
+                      </p>
+                    </div>
+
+                    <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto font-medium">
+                      Informações consolidadas. Envie o escopo para a equipe técnica e daremos andamento à avaliação detalhada.
+                    </p>
+                    <Button variant="whatsapp" onClick={sendQuizToWhatsApp} icon={WhatsAppIcon} className="w-full py-5 text-lg shadow-xl shadow-[#25D366]/20">
+                      Compartilhar Escopo com a Equipe
+                    </Button>
+                  </motion.div>
+                )}
+              </motion.div>
+            </div>
+          </section>
+
+          {/* --- THICK ROLLER --- */}
+          <div className="py-10 bg-white dark:bg-slate-900 border-y border-slate-100 dark:border-white/5 overflow-hidden flex items-center shadow-sm">
+             <Marquee text="TRANSPARÊNCIA TÉCNICA • RESULTADOS COMPROVADOS • " className="text-3xl md:text-5xl font-black uppercase text-stroke-cyan" />
+          </div>
+
+          {/* --- SPECIALIST SECTION --- */}
+          <section id="especialista" className="py-32 relative bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950">
+            <div className="absolute inset-0 z-0 opacity-100 dark:opacity-40 mix-blend-multiply dark:mix-blend-screen" style={{ backgroundImage: `url(${TEXTURA_BRANCA})`, backgroundRepeat: 'repeat', backgroundSize: '300px' }}></div>
+            <div className="absolute inset-0 z-0 bg-white/70 dark:bg-slate-950/80 backdrop-blur-[2px]"></div>
+
+            <div className="container mx-auto px-6 relative z-10">
+              <div className="flex flex-col md:flex-row flex-wrap md:flex-nowrap items-center justify-center md:justify-between gap-10 md:gap-16 max-w-6xl mx-auto">
+                
+                {/* Imagem (Esquerda Mobile/Desktop) */}
+                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="w-full max-w-[280px] md:max-w-[400px] lg:w-1/2 relative shrink-0 order-1">
+                   <div className="aspect-[4/5] bg-gradient-to-t from-cyan-100/50 to-transparent dark:from-slate-800 dark:to-transparent rounded-[3rem] overflow-hidden flex items-end justify-center border-[3px] md:border-4 border-white dark:border-slate-800 shadow-2xl relative z-10 px-1 pt-6">
+                     <img src={ESPECIALISTA_IMG} alt="Nicolas Costa Especialista" className="w-[110%] object-contain object-bottom drop-shadow-2xl translate-y-1" />
+                   </div>
+                   <div className="absolute top-4 -right-4 w-full h-full bg-cyan-500/10 dark:bg-cyan-500/10 rounded-[3rem] -z-0 border border-cyan-500/20"></div>
+                </motion.div>
+                
+                {/* Textos (Direita Mobile/Desktop) */}
+                <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="w-full lg:w-1/2 flex flex-col justify-center text-left order-2 mt-4 md:mt-0">
+                  <div className="inline-flex items-center gap-3 mb-4 md:mb-6">
+                    <span className="w-8 md:w-12 h-1 bg-cyan-500 rounded-full"></span>
+                    <span className="text-cyan-600 dark:text-cyan-400 font-black uppercase tracking-widest text-[10px] md:text-sm">O Especialista - Nicolas Costa</span>
+                  </div>
+                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-5 md:mb-8 text-slate-900 dark:text-white leading-tight">
+                    Uma abordagem que <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600 dark:from-cyan-400 dark:to-blue-400">elimina improvisos.</span>
+                  </h2>
+                  <div className="text-slate-600 dark:text-slate-300 space-y-3 md:space-y-5 mb-8 md:mb-10 text-sm md:text-lg font-medium leading-relaxed">
+                    <p>Todo o processo da Piscina NOTA10 é supervisionado para garantir que a sua área de lazer nunca se torne um problema de rotina.</p>
+                    <p>Adotamos metodologias profissionais de controle químico e físico, entregando segurança e valorização para o seu imóvel.</p>
+                  </div>
+                  <ul className="space-y-3 md:space-y-4 mb-8 md:mb-10 text-left mx-0">
+                    {["Avaliação físico-química de precisão", "Transparência técnica nas visitas", "Rotina rigorosa e documentada"].map((item, i) => (
+                       <li key={i} className="flex items-center gap-3 text-slate-700 dark:text-slate-200 font-bold text-xs md:text-base">
+                          <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center flex-shrink-0">
+                            <CheckCircle className="w-3 h-3 md:w-3.5 md:h-3.5 text-cyan-600 dark:text-cyan-400" />
+                          </div>
+                          {item}
+                       </li>
+                    ))}
+                  </ul>
+                  <div className="flex justify-start mb-10">
+                     <Button href={getWhatsAppLink("Olá Nicolas, busco o suporte da direção técnica para a minha piscina.")} variant="primary" icon={WhatsAppIcon} className="w-full sm:w-auto text-sm md:text-base px-6 py-4">
+                       Falar com Nicolas
+                     </Button>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 md:gap-6 w-full">
+                     <AnimatedCounter target={7} label="Anos" />
+                     <AnimatedCounter target={300} label="Casos" />
+                     <AnimatedCounter target={100} label="Processos" />
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          </section>
+
+          <OrganicWaveBottom fill="fill-white dark:fill-slate-950" />
+
+          {/* --- SERVICES GRID --- */}
+          <section id="servicos" className="py-24 relative bg-white dark:bg-slate-950 transition-colors z-10">
+            <div className="absolute inset-0 z-0 opacity-100 dark:opacity-40 mix-blend-multiply dark:mix-blend-screen" style={{ backgroundImage: `url(${TEXTURA_BRANCA})`, backgroundRepeat: 'repeat', backgroundSize: '300px' }}></div>
+            <div className="absolute inset-0 z-0 bg-white/80 dark:bg-slate-950/90 backdrop-blur-[2px]"></div>
+
+            <div className="container mx-auto px-6 max-w-6xl relative z-10">
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="text-center max-w-3xl mx-auto mb-16">
+                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-100/50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 mb-6 text-xs font-bold uppercase tracking-widest border border-cyan-200 dark:border-cyan-800 shadow-sm">
+                    <ShoppingCart className="w-3.5 h-3.5" /> Serviços
+                 </div>
+                <h2 className="text-3xl md:text-5xl font-black mb-6 text-slate-900 dark:text-white tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-cyan-700 dark:from-white dark:to-cyan-400 animate-gradient-text pb-1">
+                  Defina a estrutura do projeto
+                </h2>
+                <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">Navegue pelas frentes de trabalho, selecione as adequadas à sua estrutura e solicite nosso alinhamento comercial.</p>
+              </motion.div>
+
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="flex flex-wrap justify-center gap-2 mb-12">
+                {SERVICE_CATEGORIES.map(category => (
+                  <button
+                    key={category.id}
+                    onClick={() => setActiveTab(category.id)}
+                    className={`px-6 py-3 rounded-full font-bold text-sm transition-all duration-300 ${activeTab === category.id ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-md scale-105' : 'bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-white/5'}`}
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </motion.div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                <AnimatePresence mode="popLayout">
+                  {SERVICE_CATEGORIES.find(c => c.id === activeTab)?.services.map(service => {
+                    const isSelected = selectedServices.some(s => s.id === service.id);
+                    const ServiceIcon = service.icon;
+                    return (
+                      <motion.div
+                        key={service.id}
+                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}
+                        onClick={() => toggleService(service)}
+                        className={`cursor-pointer p-8 rounded-[2rem] border-2 transition-all duration-300 flex flex-col items-start relative overflow-hidden group
+                          ${isSelected ? 'border-cyan-500 bg-cyan-50/50 dark:bg-cyan-900/20 shadow-lg' : 'border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 hover:border-cyan-300 dark:hover:border-slate-700 hover:shadow-md'}`}
+                      >
+                        <div className={`absolute top-6 right-6 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-cyan-500 bg-cyan-500 scale-100' : 'border-slate-200 dark:border-slate-700 scale-0 group-hover:scale-100'}`}>
+                          <CheckCircle className="w-5 h-5 text-white" />
+                        </div>
+                        <ServiceIcon className={`w-8 h-8 mb-6 ${isSelected ? 'text-cyan-500' : 'text-slate-400 dark:text-slate-500'}`} />
+                        <h3 className={`text-xl font-black mb-3 ${isSelected ? 'text-cyan-900 dark:text-cyan-100' : 'text-slate-900 dark:text-white'}`}>{service.title}</h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">{service.desc}</p>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            </div>
+          </section>
+
+          {/* --- FLOATING CART WIDGET --- */}
+          <AnimatePresence>
+            {selectedServices.length > 0 && (
+              <motion.div 
+                initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
+                className="fixed bottom-6 left-0 right-0 lg:right-20 z-[55] flex justify-center lg:justify-start lg:pl-6 px-4 pointer-events-none"
+              >
+                <div className="bg-slate-900 dark:bg-slate-800 text-white p-4 pr-6 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-700 flex items-center gap-6 pointer-events-auto w-full max-w-xl">
+                  <div className="relative pl-2 hidden sm:block">
+                    <ShoppingCart className="w-6 h-6 text-cyan-400" />
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">{selectedServices.length}</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-sm">Escopo Mapeado: {selectedServices.length} Frentes</p>
+                    <p className="text-xs text-slate-400 truncate max-w-[180px] sm:max-w-[300px]">{selectedServices.map(s=>s.title).join(', ')}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <button onClick={() => setSelectedServices([])} className="p-2 text-slate-500 hover:text-red-400 transition-colors">
+                       <Trash2 className="w-5 h-5" />
+                     </button>
+                     <Button onClick={sendCartToWhatsApp} variant="whatsapp" className="py-2.5 px-4 text-sm" icon={WhatsAppIcon}>
+                       Avançar Solicitação
+                     </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <OrganicWaveTop fill="fill-slate-50 dark:fill-slate-900" />
+
+          {/* --- AUTOMATIC SOCIAL PROOF CAROUSEL --- */}
+          <section className="py-24 bg-slate-50 dark:bg-slate-900 transition-colors z-10 overflow-hidden">
+            <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="container mx-auto px-6 mb-16 text-center">
+               <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">Padrão validado</h2>
+               <p className="text-lg text-slate-500 dark:text-slate-400 font-medium">Acompanhe a percepção técnica daqueles que confiam em nosso processo.</p>
+            </motion.div>
+            
+            <div className="overflow-hidden w-full relative">
+              <div className="absolute top-0 left-0 w-16 md:w-32 h-full bg-gradient-to-r from-slate-50 to-transparent dark:from-slate-900 z-10 pointer-events-none"></div>
+              <div className="absolute top-0 right-0 w-16 md:w-32 h-full bg-gradient-to-l from-slate-50 to-transparent dark:from-slate-900 z-10 pointer-events-none"></div>
+
+              <div className="testimonial-track gap-6 md:gap-8 px-4">
+                {CAROUSEL_ITEMS.map((item, index) => (
+                  <div key={index} className="shrink-0 w-[85vw] md:w-[450px] bg-white dark:bg-slate-950 rounded-[2.5rem] border border-slate-200 dark:border-white/5 shadow-md flex flex-col overflow-hidden relative">
+                    
+                    <div className="w-full h-48 md:h-56 relative overflow-hidden bg-slate-900 border-b border-slate-200 dark:border-white/5">
+                       {/* Background Blurred para dar preenchimento premium nos prints verticais */}
+                       <img src={item.img} className="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110" alt="" />
+                       <img src={item.img} className="relative w-full h-full object-contain pt-2" alt={`Depoimento ${item.name}`} />
+                       
+                       <div className="absolute top-4 left-4 z-10 bg-slate-900/90 dark:bg-black/60 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] font-black uppercase text-white shadow-sm border border-slate-700 dark:border-white/10">
+                         Caso Real
+                       </div>
+                    </div>
+
+                    <div className="p-6 md:p-8 flex flex-col flex-1">
+                      <div className="flex gap-1 text-amber-400 mb-4">
+                        {[1,2,3,4,5].map(star => <Star key={star} className="w-4 h-4 md:w-5 md:h-5 fill-current" />)}
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 italic mb-6 font-medium text-sm md:text-base leading-relaxed">"{item.text}"</p>
+                      
+                      <div className="mt-auto pt-4 border-t border-slate-200 dark:border-white/10 flex items-center gap-4">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 font-black text-lg md:text-xl">
+                          {item.name.charAt(0)}
+                        </div>
+                        <div>
+                           <p className="font-bold text-slate-900 dark:text-white text-sm md:text-base">{item.name}</p>
+                           <p className="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-wider">{item.neighborhood} • {item.service}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <OrganicWaveBottom fill="fill-white dark:fill-slate-950" />
+
+          {/* --- MAP SECTION --- */}
+          <section className="py-24 relative bg-white dark:bg-slate-950 z-10">
+            <div className="absolute inset-0 z-0 opacity-100 dark:opacity-40 mix-blend-multiply dark:mix-blend-screen" style={{ backgroundImage: `url(${TEXTURA_BRANCA})`, backgroundRepeat: 'repeat', backgroundSize: '300px' }}></div>
+            <div className="absolute inset-0 z-0 bg-white/45 dark:bg-slate-950/70 backdrop-blur-[2px]"></div>
+            
+            <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+              
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} className="flex flex-col items-start text-left">
+                <div className="w-16 h-16 bg-cyan-100 dark:bg-cyan-900/30 rounded-[2rem] flex items-center justify-center mb-8 border border-cyan-200 dark:border-cyan-900/50 shadow-sm">
+                   <MapPin className="w-8 h-8 text-cyan-600 dark:text-cyan-400" />
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black mb-6 text-slate-900 dark:text-white leading-tight">Estrutura de Rota.</h2>
+                <p className="text-lg text-slate-600 dark:text-slate-400 font-medium mb-10 leading-relaxed max-w-lg">
+                  Atuamos com rotas operacionais consolidadas abrangendo Barra da Tijuca, Recreio, Zona Sul e Grande Tijuca, focando na regularidade dos processos.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                  <Button href={getWhatsAppLink("Olá, solicito alinhamento para avaliação técnica no meu endereço.")} variant="whatsapp" icon={WhatsAppIcon} className="py-4 px-8 text-base">
+                    Solicitar Avaliação
+                  </Button>
+                  <Button href={getWhatsAppLink("Olá, gostaria de checar a malha de atendimento no meu bairro.")} variant="outlineDark" icon={MapPin} className="py-4 px-8 text-base">
+                    Verificar Área Atendida
+                  </Button>
+                </div>
+              </motion.div>
+
+              <motion.div variants={scaleUp} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} className="w-full max-w-md mx-auto lg:max-w-full h-[250px] lg:h-[350px] rounded-[3rem] overflow-hidden border-[6px] border-white dark:border-slate-800 shadow-2xl relative bg-slate-100 dark:bg-slate-900">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d117565.41829631773!2d-43.43577315!3d-22.9463583!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9bda4e526484e5%3A0x6ce6b50f952f4eb2!2sRio%20de%20Janeiro%2C%20RJ!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr"
+                  className="absolute inset-0 w-full h-full grayscale-[20%] contrast-125 dark:invert dark:hue-rotate-180"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Mapa Rio de Janeiro"
+                ></iframe>
+                <div className="absolute inset-0 pointer-events-none rounded-[3rem] shadow-[inset_0_0_40px_rgba(0,0,0,0.1)]"></div>
+              </motion.div>
+
+            </div>
+          </section>
+
+          {/* --- FINAL ROLLER --- */}
+          <div className="py-4 bg-cyan-700 dark:bg-cyan-900 text-white overflow-hidden flex items-center shadow-md">
+             <Marquee text="GARANTA SUA VAGA • ATENDIMENTO ESPECIALIZADO NO RJ • " className="text-xs md:text-sm font-bold uppercase tracking-widest" reverse={true} />
+          </div>
+
+          {/* --- FINAL OFFER --- */}
+          <section className="py-32 relative flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0 z-0">
+               <img src={IMAGEM_HERO} alt="Fundo Piscina" className="w-full h-full object-cover object-center" />
+               <div className="absolute inset-0 bg-blue-950/85 mix-blend-multiply"></div>
+               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-95"></div>
+            </div>
+            
+            <div className="container mx-auto px-6 max-w-4xl relative z-10 text-center flex flex-col items-center">
+              <motion.img variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} src={LOGO_PRINCIPAL} alt="Piscina NOTA10" className="h-16 md:h-20 mb-8 object-contain brightness-0 invert opacity-90 drop-shadow-lg" />
+              
+              <motion.h2 variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight drop-shadow-md leading-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-white animate-gradient-text">
+                Agende uma avaliação técnica e entenda o que sua piscina realmente precisa
+              </motion.h2>
+              <motion.p variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="text-xl md:text-2xl text-cyan-100/90 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
+                Atendimento organizado, análise completa e plano ideal para manter sua piscina sempre pronta para uso.
+              </motion.p>
+
+              <motion.div variants={scaleUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="mb-10 flex flex-col sm:flex-row items-center gap-6">
+                <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-red-500/30 bg-red-500/10 backdrop-blur-md shadow-sm">
+                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                  <span className="font-bold text-red-100 text-sm md:text-base tracking-wide">Agenda técnica controlada por região no RJ</span>
+                </div>
+              </motion.div>
+              
+              <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto p-2 bg-white/5 backdrop-blur-md rounded-[2rem] border border-white/10 shadow-2xl">
+                <Button href={getWhatsAppLink("Olá, quero agendar uma avaliação técnica para a minha piscina.")} variant="whatsapp" className="w-full sm:w-auto text-lg px-8 py-4" icon={WhatsAppIcon}>
+                  Agendar visita técnica
+                </Button>
+                <Button href={getWhatsAppLink("Olá, gostaria de alinhar diretrizes sobre a manutenção da minha piscina.")} variant="outline" className="w-full sm:w-auto text-lg px-8 py-4 border-red-500/40 text-red-100 hover:bg-red-500/10" icon={WhatsAppIcon}>
+                  Alinhar via WhatsApp
+                </Button>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* --- FOOTER --- */}
+          <footer className="bg-slate-950 pt-24 pb-12 border-t border-white/10">
+            <div className="container mx-auto px-6">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16 mb-20">
+                
+                <div className="md:col-span-5 flex flex-col items-start">
+                  <img src={LOGO_PRINCIPAL} alt="Piscina NOTA10" className="h-12 mb-8 object-contain brightness-0 invert opacity-90" />
+                  <p className="text-slate-400 text-sm mb-8 leading-relaxed max-w-md font-medium">
+                    Atuação com rigor técnico para piscinas no Rio de Janeiro. Nosso processo otimiza e cuida de forma sistêmica da sua área de lazer.
+                  </p>
+                  <div className="flex gap-4">
+                    <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-slate-300 hover:text-cyan-400 hover:bg-white/10 transition-all border border-white/10">
+                      <Instagram className="w-5 h-5" />
+                    </a>
+                    <a href={getWhatsAppLink("Olá, busco suporte técnico.")} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-slate-300 hover:text-[#25D366] hover:bg-white/10 transition-all border border-white/10">
+                      <WhatsAppIcon className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
+                
+                <div className="md:col-span-3">
+                  <h4 className="text-white font-bold mb-8 uppercase tracking-widest text-xs">Acesso Direto</h4>
+                  <ul className="space-y-4 text-sm text-slate-400 font-medium">
+                    <li><button onClick={()=>scrollTo('servicos')} className="hover:text-cyan-400 transition-colors">Portfólio Modular</button></li>
+                    <li><button onClick={()=>scrollTo('quiz')} className="hover:text-cyan-400 transition-colors">Avaliação Diagnóstica</button></li>
+                    <li><a href={INSTAGRAM_URL} target="_blank" className="hover:text-cyan-400 transition-colors">Acompanhamento Diário</a></li>
+                  </ul>
+                </div>
+
+                <div className="md:col-span-4">
+                  <h4 className="text-white font-bold mb-8 uppercase tracking-widest text-xs">Canais Oficiais</h4>
+                  <ul className="space-y-5 text-sm text-slate-400 font-medium">
+                    <li className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-full bg-cyan-900/30 flex items-center justify-center flex-shrink-0"><WhatsAppIcon className="w-4 h-4 text-cyan-400"/></div>
+                       +55 21 98535-5807
+                    </li>
+                    <li className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-full bg-cyan-900/30 flex items-center justify-center flex-shrink-0"><MapPin className="w-4 h-4 text-cyan-400"/></div>
+                       Rotas Otimizadas RJ
+                    </li>
+                  </ul>
+                </div>
+
+              </div>
+              
+              <div className="pt-8 border-t border-white/10 text-center text-xs text-slate-500 flex flex-col md:flex-row justify-between items-center gap-6 font-medium uppercase tracking-wider">
+                <p>© {new Date().getFullYear()} Piscina NOTA10. Direitos Reservados à marca e operação técnica.</p>
+              </div>
+            </div>
+          </footer>
+
+        </div>
+      </div>
+    </div>
+  );
+}
